@@ -13,15 +13,16 @@ background = transform.scale(image.load('space.jpg'),(win_x,win_y))
 
 #Классы
 class GameSprite(sprite.Sprite):
-    def __init__(self,player_image,player_x,player_y,size_x,size_y,player_speed):
+    def __init__(self,player_image,player_x,player_y,size_x,size_y,speed_x,speed_y):
         super().__init__()
         self.image = transform.scale(image.load(player_image),(size_x,size_y))
-        self.speed = player_speed
         self.rect = self.image.get_rect()
         self.rect.x = player_x
         self.rect.y = player_y
         self.size_x = size_x
         self.size_y = size_y
+        self.speed_y = speed_y
+        self.speed_x = speed_x
     def reset(self):
         window.blit(self.image, (self.rect.x, self.rect.y))
     def image_reset(self,new_image,size_x,size_y): 
@@ -32,36 +33,35 @@ class Player_ALFA(GameSprite):
     def update(self):
         keys = key.get_pressed()
         if keys[K_w] and self.rect.y > 0:
-            self.rect.y -= self.speed
+            self.rect.y -= self.speed_x
         if keys[K_s] and self.rect.y < win_y-200:
-            self.rect.y += self.speed
+            self.rect.y += self.speed_x
 
 class Player_BETA(GameSprite):
     def update(self):
         keys = key.get_pressed()
         if keys[K_UP] and self.rect.y > 0:
-            self.rect.y -= self.speed
+            self.rect.y -= self.speed_x
         if keys[K_DOWN] and self.rect.y < win_y-200:
-            self.rect.y += self.speed
+            self.rect.y += self.speed_x
 
 class Ball(GameSprite):
     def update(self):
         global Flag
         if Flag == False:
-            if self.rect.x < win_x-101:
-                self.rect.x += self.speed
-            else:
-                Flag = True
+            self.rect.x += self.speed_x
+            self.rect.y += self.speed_y
         
         if Flag != False:
-            if self.rect.x > 0:
-                self.rect.x -= self.speed
-            else:
-                Flag = False
+            self.rect.x -= self.speed_x
+            self.rect.y -= self.speed_y
 
+        if self.rect.y < 0 or self.rect.y > win_y - 101:
+            self.speed_y *= -1
+        #if self.rect.x < 0 or self.rect.x > win_x - 101:
+            #self.speed_x *= -1
         
-
-
+        
 
 
 #Настройки
@@ -81,9 +81,9 @@ if random == 1:
 else:
     Flag = True
 
-Player1 = Player_ALFA('fanta.png',50,100,75,200,10)
-Player2 = Player_BETA('sprite.png',win_x-150,100,125,200,10)
-Asteroid = Ball('asteroid.png',win_x/2,win_y/2,100,100,10)
+Player1 = Player_ALFA('fanta.png',50,100,75,200,15,15)
+Player2 = Player_BETA('sprite.png',win_x-150,100,125,200,15,15)
+Asteroid = Ball('asteroid.png',win_x/2,win_y/2,100,100,12,12)
 
 #Цикл
 while Game:
@@ -96,8 +96,26 @@ while Game:
         Asteroid.reset()
         if Start != False:
             Asteroid.update()
-        
+
+            if sprite.collide_rect(Player1,Asteroid):
+                Asteroid.speed_x *= -1
+                rand = randint(12,18)
+                Asteroid.speed_y = rand
+
+            if sprite.collide_rect(Player2,Asteroid):
+                Asteroid.speed_x *= -1
+                rand = randint(12,18)
+                Asteroid.speed_y = rand
+            
+            if Asteroid.rect.x >= win_x - 101:
+                window.blit(text_win_fanta,(win_x/2-250,win_y/2-100))
+                Asteroid.speed_y = 0
+                Asteroid.speed_x = 0
+
+
         text_not_start = font1.render('НАЖМИТЕ ПРОБЕЛ ЧТОБЫ НАЧАТЬ ИГРУ',1,(150,0,0))
+        text_win_fanta = font1.render('ФАНТА ЗАБИЛА ГОЛ!!!',1,(150,0,0))
+
         if Start != True:
             window.blit(text_not_start,(win_x/2-250,win_y/2-100))
 
